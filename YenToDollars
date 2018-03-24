@@ -1,0 +1,175 @@
+.data
+	menuP:    .asciiz " Choose from the following options: "
+	option1:  .asciiz "\n\n\t 1) Set the exchange rate." 
+	option2:  .asciiz   "\n\t 2) US dollars -> yen."
+	option3:  .asciiz   "\n\t 3) Yen -> US dollars. "
+	option4:  .asciiz  "\n\t 4) Exit. \n\t>"
+	
+	invalid:  .asciiz  "\n\n Invalid input."
+	
+         border:  .asciiz "\n_____________________________________________\n\n"
+    
+    setExchangeP: .asciiz "\n\n Enter exchange rate (1 dollar = x yen): \n\t>"
+    exchangeRate: .word 4
+    
+   dollarstoYenP: .asciiz "\n\n Enter dollar amount to convert to yen: "
+   yenToDollarsP: .asciiz "\n\n Enter yen amount to convert to dollars: "
+      convPrompt: .asciiz "\n Result after conversion: \n\t>"
+      
+      	yenLabel: .asciiz " yen\n"
+       yenChange: .asciiz " yen, in change.\n"
+     dollarLabel: .asciiz " dollars\n"
+     
+	.globl menu
+	
+.text
+	menu:	
+	
+		li $a0, 0
+		li $v0, 0
+		li $t0, 0
+		li $t1, 0
+		li $t2, 0
+		li $s0, 0
+
+		li $v0, 4
+		
+		la $a0, border		#print border
+		syscall 
+		
+		la $a0, menuP		#print menu_p
+		syscall
+	
+		la $a0, option1	 	#print option_1
+		syscall
+	
+		la $a0, option2	 	#print option_2
+		syscall
+	
+		la $a0, option3		#print option_3
+		syscall
+	
+		la $a0, option4		#print option_4
+		syscall
+	
+		li $v0, 5		#request menu choice
+		syscall
+		
+		add $t0, $v0, $t0	#store the menu selection ($t0)
+		
+		j menuSelect
+		
+	menuSelect:
+		
+		beq $t0, 1, setExchange		#branch to setExchange
+		beq $t0, 2, dollarsToYen	#branch to dollarsToYen
+		beq $t0, 3, yenToDollars	#branch to yenToDollars
+		beq $t0, 4, exit		#branch to exit
+		
+		li $v0, 4
+		
+		la $a0, invalid		#output invalid prompt
+		syscall
+		
+		j menu			#jump to main
+	
+	setExchange:
+		
+		li $v0, 4
+		la $a0, border
+		syscall
+		
+		la $a0, setExchangeP	#request exchange rate
+		syscall
+		
+		li $v0, 5		#request user input of int
+		syscall
+		
+		sw $v0, exchangeRate	#store exchangeRate
+		
+		j menu    		#jump to main function
+	
+	dollarsToYen:
+	
+		lw $s0, exchangeRate 	#load exchangeRate ($s0)
+		
+		li $v0, 4		
+		la $a0, border
+		syscall
+		
+		la $a0,	dollarstoYenP   #load dollarsToYen prompt
+		syscall
+		
+		li $v0, 5		#load int value
+		syscall
+		
+		add $t1, $v0, $t1	#store dollars in $t1
+		
+		mult $s0, $t1	#multiply by exchange rate
+		
+		mflo $t2
+		
+		li $v0, 4
+		la $a0, convPrompt
+		syscall
+		
+		li $v0, 1		#print result
+		addi $a0, $t2, 0	
+		syscall
+		
+		li $v0, 4		#add yen label
+		la $a0, yenLabel
+		syscall
+		
+		j menu
+	
+	yenToDollars:
+		
+		lw $s0, exchangeRate	#load exchangeRate ($s0)
+		
+		li $v0, 4
+		la $a0, border
+		syscall
+		
+		la $a0, yenToDollarsP	#print yen to dollars prompt
+		syscall
+		
+		li $v0, 5		#load int value
+		syscall
+		
+		add $t1, $v0, $t1	#store dollars in $t1
+		
+		div $t1, $s0		#multiply by exchange rate
+		
+		mflo $t2		#move quotient
+		mfhi $t3		#move remainder
+		
+		li $v0, 4
+		la $a0, convPrompt
+		syscall
+		
+		li $v0, 1		#print result
+		addi $a0, $t2, 0	
+		syscall
+		
+		li $v0, 4		#add dollar label
+		la $a0, dollarLabel
+		syscall
+		
+		li $v0, 1		#print yen change
+		addi $a0, $t3, 0
+		syscall
+		
+		li $v0, 4		#add yen label
+		la $a0, yenChange
+		syscall
+		
+		j menu
+		
+	exit:
+		
+		li $v0, 10
+		syscall
+		
+		
+		
